@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ApiError } from '../api/client';
-import { deleteNotification, receiveNotification } from '../api/greenApi';
+import { deleteNotification, getStateInstance, receiveNotification } from '../api/greenApi';
 import type { Credentials, WebhookBody } from '../api/types';
 import { delay } from '../lib/delay';
 import { parseNotification } from '../lib/notifications';
@@ -24,6 +24,19 @@ function waitBeforeRetry(ms: number, signal: AbortSignal) {
   });
 }
 
+/**
+ * Инстанс MAX по истечении receiveTimeout отвечает 408, а не пустым телом:
+ * это пустая очередь, а не обрыв связи.
+ */
+async function receiveNext(credentials: Credentials, signal: AbortSignal) {
+  try {
+    return await receiveNotification(credentials, RECEIVE_TIMEOUT_SECONDS, signal);
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 408) return null;
+    throw error;
+  }
+}
+
 /** Креды отозваны или инстанс заблокирован: повторять бессмысленно. */
 function isFatal(error: unknown) {
   return error instanceof ApiError && (error.status === 401 || error.status === 403);
@@ -45,9 +58,16 @@ async function pollNotifications(
   onStatus: (status: PollingStatus) => void,
 ) {
   let backoff = INITIAL_BACKOFF_MS;
+  let connected = false;
   while (!signal.aborted) {
     try {
-      const notification = await receiveNotification(credentials, RECEIVE_TIMEOUT_SECONDS, signal);
+      // Long polling при пустой очереди висит до receiveTimeout — связь подтверждаем быстрым запросом.
+      if (!connected) {
+        await getStateInstance(credentials, signal);
+        connected = true;
+        onStatus('online');
+      }
+      const notification = await receiveNext(credentials, signal);
       onStatus('online');
       backoff = INITIAL_BACKOFF_MS;
       if (!notification) continue;
@@ -57,6 +77,7 @@ async function pollNotifications(
       await deleteNotification(credentials, notification.receiptId, signal);
     } catch (error) {
       if (signal.aborted) return;
+      connected = false;
       if (isFatal(error)) {
         onStatus('unauthorized');
         return;
