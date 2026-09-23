@@ -1,4 +1,6 @@
 import type { Credentials } from '../../api/types';
+import { Avatar } from '../../components/Avatar';
+import { BackIcon } from '../../components/icons';
 import { getChatTitle } from '../../lib/format';
 import { formatPhone } from '../../lib/phone';
 import { useChatsStore } from '../../store/chats';
@@ -21,18 +23,19 @@ export function ChatView({ chatId, credentials }: ChatViewProps) {
 
   return (
     <>
-      <header className="flex items-center gap-3 border-b border-border bg-surface px-4 py-3">
+      <header className="flex h-16 shrink-0 items-center gap-3 border-b border-border bg-surface px-3 md:px-6">
         <button
           type="button"
           onClick={() => selectChat(null)}
           aria-label="Назад к списку чатов"
-          className="-ml-2 rounded-lg px-2 py-1 text-accent transition-colors hover:bg-surface-muted md:hidden"
+          className="flex size-10 items-center justify-center rounded-full text-accent transition-colors hover:bg-surface-hover md:hidden"
         >
-          ←
+          <BackIcon />
         </button>
+        <Avatar chat={chat} size="md" />
         <div className="min-w-0">
           <h2 className="truncate font-semibold">{title}</h2>
-          {subtitle && <p className="truncate text-xs text-text-muted">{subtitle}</p>}
+          {subtitle && <p className="truncate text-[13px] text-text-muted">{subtitle}</p>}
         </div>
       </header>
 

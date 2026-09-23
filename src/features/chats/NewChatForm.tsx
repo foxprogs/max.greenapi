@@ -49,7 +49,7 @@ export function NewChatForm({ credentials, onCreated }: NewChatFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} noValidate className="border-b border-border px-4 pb-3">
+    <form onSubmit={handleSubmit} noValidate className="px-4 pb-3">
       <div className="flex gap-2">
         <input
           type="tel"
@@ -64,14 +64,14 @@ export function NewChatForm({ credentials, onCreated }: NewChatFormProps) {
             setValue(event.target.value);
             setError(null);
           }}
-          className="min-w-0 flex-1 rounded-xl border border-border bg-surface-muted px-3 py-2 outline-none transition-colors focus:border-accent focus:bg-surface"
+          className="min-w-0 flex-1 rounded-xl border border-transparent bg-surface-muted px-3 py-2 outline-none transition-colors placeholder:text-text-muted focus:border-accent focus:bg-surface"
         />
         <button
           type="submit"
           disabled={isChecking}
           className="rounded-xl bg-accent px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-hover disabled:opacity-60"
         >
-          {isChecking ? 'Проверяем…' : 'Открыть'}
+          {isChecking ? 'Проверяем…' : 'Написать'}
         </button>
       </div>
       {error && (

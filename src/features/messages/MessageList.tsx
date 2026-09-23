@@ -1,9 +1,17 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { ArrowDownIcon } from '../../components/icons';
 import { useChatsStore } from '../../store/chats';
 import type { Message } from '../../types';
 import { MessageBubble } from './MessageBubble';
+import { buildTimeline } from './timeline';
 
 const NO_MESSAGES: Message[] = [];
+/** Ближе этого к низу считаем, что пользователь «внизу» и ленту можно докручивать. */
+const BOTTOM_THRESHOLD_PX = 80;
+
+function scrollToBottom(container: HTMLElement | null, behavior: ScrollBehavior = 'instant') {
+  container?.scrollTo({ top: container.scrollHeight, behavior });
+}
 
 type MessageListProps = {
   chatId: string;
@@ -12,31 +20,97 @@ type MessageListProps = {
 
 export function MessageList({ chatId, onRetry }: MessageListProps) {
   const messages = useChatsStore((state) => state.messages[chatId] ?? NO_MESSAGES);
-  const bottomRef = useRef<HTMLDivElement>(null);
+  const timeline = useMemo(() => buildTimeline(messages), [messages]);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const isAtBottomRef = useRef(true);
+  const lastScrollTopRef = useRef(0);
+  const [showScrollButton, setShowScrollButton] = useState(false);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: прокручиваем при каждом новом сообщении
+  const lastMessage = messages.at(-1);
+  const isOwnPending = lastMessage?.direction === 'out' && lastMessage.status === 'pending';
+
+  // Прилипание к низу: пока пользователь внизу, любое изменение высоты ленты (новое сообщение,
+  // строка ошибки, растущее поле ввода) докручивает её. Если он читает историю — не мешаем.
+  // При открытии чата isAtBottomRef = true, поэтому лента сразу открывается внизу.
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ block: 'end' });
-  }, [messages.length]);
+    const container = containerRef.current;
+    const content = contentRef.current;
+    if (!container || !content) return;
+    const observer = new ResizeObserver(() => {
+      if (isAtBottomRef.current) scrollToBottom(container);
+    });
+    observer.observe(container);
+    observer.observe(content);
+    return () => observer.disconnect();
+  }, []);
 
-  if (messages.length === 0) {
-    return (
-      <div className="flex flex-1 items-center justify-center text-sm text-text-muted">
-        Сообщений пока нет
-      </div>
-    );
-  }
+  // Своё только что отправленное сообщение показываем, даже если лента была прокручена вверх.
+  useLayoutEffect(() => {
+    if (!isOwnPending) return;
+    isAtBottomRef.current = true;
+    scrollToBottom(containerRef.current);
+  }, [isOwnPending]);
+
+  const handleScroll = () => {
+    const container = containerRef.current;
+    if (!container) return;
+    const { scrollTop, scrollHeight, clientHeight } = container;
+    // «Ушёл от низа» — только если пользователь сам крутит вверх. Событие от нашей докрутки
+    // может прийти, когда лента уже снова выросла, и не должно отключать прилипание.
+    if (scrollHeight - scrollTop - clientHeight < BOTTOM_THRESHOLD_PX) {
+      isAtBottomRef.current = true;
+    } else if (scrollTop < lastScrollTopRef.current) {
+      isAtBottomRef.current = false;
+    }
+    lastScrollTopRef.current = scrollTop;
+    setShowScrollButton(!isAtBottomRef.current);
+  };
 
   return (
-    <div className="flex-1 overflow-y-auto px-4 py-3">
-      <ul className="flex flex-col gap-1.5">
-        {messages.map((message) => (
-          <li key={message.id} className="flex">
-            <MessageBubble message={message} onRetry={() => onRetry(message.id)} />
-          </li>
-        ))}
-      </ul>
-      <div ref={bottomRef} />
+    <div className="relative flex min-h-0 flex-1 flex-col">
+      <div ref={containerRef} onScroll={handleScroll} className="flex-1 overflow-y-auto">
+        <div ref={contentRef} className="flex min-h-full flex-col">
+          {messages.length === 0 ? (
+            <div className="flex flex-1 items-center justify-center p-4">
+              <span className="rounded-full bg-capsule px-3 py-1 text-sm text-text-secondary">
+                Сообщений пока нет — напишите первым
+              </span>
+            </div>
+          ) : (
+            <ul className="mx-auto flex w-full max-w-3xl flex-1 flex-col justify-end px-3 py-3 md:px-6">
+              {timeline.map((item) =>
+                item.type === 'day' ? (
+                  <li key={item.key} className="my-2 flex justify-center">
+                    <span className="rounded-full bg-capsule px-3 py-0.5 text-[13px] font-medium text-text-secondary">
+                      {item.label}
+                    </span>
+                  </li>
+                ) : (
+                  <li key={item.key} className={item.stackedBelow ? 'mb-0.5' : 'mb-2'}>
+                    <MessageBubble
+                      message={item.message}
+                      stackedAbove={item.stackedAbove}
+                      onRetry={() => onRetry(item.message.id)}
+                    />
+                  </li>
+                ),
+              )}
+            </ul>
+          )}
+        </div>
+      </div>
+
+      {showScrollButton && (
+        <button
+          type="button"
+          onClick={() => scrollToBottom(containerRef.current, 'smooth')}
+          aria-label="К последним сообщениям"
+          className="absolute right-4 bottom-4 flex size-11 items-center justify-center rounded-full border border-border bg-surface text-text-secondary shadow-md transition-colors hover:text-accent"
+        >
+          <ArrowDownIcon />
+        </button>
+      )}
     </div>
   );
 }

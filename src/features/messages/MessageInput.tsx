@@ -1,7 +1,10 @@
 import { type KeyboardEvent, type SubmitEvent, useLayoutEffect, useRef, useState } from 'react';
+import { SendIcon } from '../../components/icons';
 import { MAX_MESSAGE_LENGTH } from './sendText';
 
 const MAX_HEIGHT_PX = 160;
+/** Счётчик символов показываем, когда до лимита осталось меньше этого. */
+const COUNTER_THRESHOLD = 500;
 
 type MessageInputProps = {
   onSend: (text: string) => void;
@@ -40,29 +43,41 @@ export function MessageInput({ onSend }: MessageInputProps) {
     }
   };
 
+  const remaining = MAX_MESSAGE_LENGTH - text.length;
+
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="flex items-end gap-2 border-t border-border bg-surface px-4 py-3"
-    >
-      <textarea
-        ref={textareaRef}
-        rows={1}
-        value={text}
-        maxLength={MAX_MESSAGE_LENGTH}
-        onChange={(event) => setText(event.target.value)}
-        onKeyDown={handleKeyDown}
-        placeholder="Сообщение"
-        aria-label="Сообщение"
-        className="min-w-0 flex-1 resize-none rounded-xl bg-surface-muted px-3 py-2 outline-none"
-      />
-      <button
-        type="submit"
-        disabled={!trimmed}
-        className="rounded-xl bg-accent px-4 py-2 font-medium text-white transition-colors hover:bg-accent-hover disabled:opacity-50"
-      >
-        Отправить
-      </button>
+    <form onSubmit={handleSubmit} className="border-t border-border bg-surface px-3 py-3 md:px-6">
+      <div className="mx-auto flex max-w-3xl items-end gap-2">
+        <div className="flex min-w-0 flex-1 flex-col rounded-xl border border-black/6 bg-surface transition-colors focus-within:border-accent">
+          <textarea
+            ref={textareaRef}
+            rows={1}
+            value={text}
+            maxLength={MAX_MESSAGE_LENGTH}
+            onChange={(event) => setText(event.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Сообщение"
+            aria-label="Сообщение"
+            className="block w-full resize-none bg-transparent px-3 py-2.5 leading-5 outline-none placeholder:text-text-muted"
+          />
+          {remaining <= COUNTER_THRESHOLD && (
+            <span
+              className={`self-end px-3 pb-1 text-xs ${remaining === 0 ? 'text-danger' : 'text-text-muted'}`}
+            >
+              {text.length}/{MAX_MESSAGE_LENGTH}
+            </span>
+          )}
+        </div>
+        <button
+          type="submit"
+          disabled={!trimmed}
+          aria-label="Отправить"
+          title="Отправить (Enter)"
+          className="flex size-11 shrink-0 items-center justify-center rounded-full bg-accent text-white transition-colors hover:bg-accent-hover disabled:bg-surface-muted disabled:text-text-muted"
+        >
+          <SendIcon />
+        </button>
+      </div>
     </form>
   );
 }

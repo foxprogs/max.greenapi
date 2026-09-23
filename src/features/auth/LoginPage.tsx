@@ -2,6 +2,7 @@ import { type SubmitEvent, useId, useState } from 'react';
 import { ApiError } from '../../api/client';
 import { getStateInstance } from '../../api/greenApi';
 import type { Credentials, InstanceState } from '../../api/types';
+import { MaxLogo } from '../../components/icons';
 import { useSessionStore } from '../../store/session';
 
 const STATE_ERRORS: Partial<Record<InstanceState, string>> = {
@@ -63,12 +64,13 @@ export function LoginPage() {
   };
 
   return (
-    <main className="flex min-h-full items-center justify-center p-4">
+    <main className="flex min-h-full items-center justify-center bg-surface-muted p-4">
       <form
         onSubmit={handleSubmit}
         noValidate
         className="w-full max-w-sm rounded-2xl bg-surface p-8 shadow-sm"
       >
+        <MaxLogo className="mx-auto mb-4 size-14" />
         <h1 className="mb-1 text-center text-2xl font-semibold">MAX Chat</h1>
         <p className="mb-6 text-center text-sm text-text-muted">
           Войдите с данными инстанса из{' '}
@@ -153,7 +155,7 @@ function Field({
         autoComplete={autoComplete}
         spellCheck={false}
         onChange={(event) => onChange(event.target.value)}
-        className="w-full rounded-xl border border-border bg-surface-muted px-4 py-2.5 outline-none transition-colors focus:border-accent focus:bg-surface"
+        className="w-full rounded-xl border border-transparent bg-surface-muted px-4 py-2.5 outline-none transition-colors placeholder:text-text-muted focus:border-accent focus:bg-surface"
         {...inputProps}
       />
     </div>
