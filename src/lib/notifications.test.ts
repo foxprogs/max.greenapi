@@ -68,7 +68,7 @@ describe('parseNotification', () => {
         idMessage: '2',
         status: 'noAccount',
       }),
-    ).toMatchObject({ status: 'error' });
+    ).toMatchObject({ status: 'error', error: 'У получателя нет аккаунта MAX' });
   });
 
   it('ignores unknown and malformed notifications', () => {

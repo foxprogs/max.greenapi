@@ -1,13 +1,17 @@
 import { describe, expect, it } from 'vitest';
 import type { ReceivedNotification } from '../api/types';
+import { historyResponse } from '../lib/__fixtures__/history';
 import fixtures from '../lib/__fixtures__/notifications.json';
+import { parseHistory } from '../lib/history';
 import { type ChatEvent, parseNotification } from '../lib/notifications';
 import {
   addPendingMessage,
   applyEvent,
   type ChatsData,
   initialChatsData,
+  markMessageFailed,
   markMessageSent,
+  mergeHistory,
   openChat,
   selectChat,
 } from './chats';
@@ -93,5 +97,75 @@ describe('chats store', () => {
     expect(data.messages[CHAT_ID]).toEqual([
       expect.objectContaining({ id: '1790151580644', status: 'sent' }),
     ]);
+  });
+
+  it('keeps the store untouched when a request finishes after logout', () => {
+    expect(markMessageFailed(initialChatsData, CHAT_ID, 'local-1', 'Ошибка')).toBe(
+      initialChatsData,
+    );
+    expect(markMessageSent(initialChatsData, CHAT_ID, 'local-1', '1')).toBe(initialChatsData);
+  });
+
+  it('stores the failure reason from a delivery status', () => {
+    const data = applyEvent(sentFromUi(), {
+      type: 'status',
+      chatId: CHAT_ID,
+      id: '1790151580644',
+      status: 'error',
+      error: 'У получателя нет аккаунта MAX',
+    });
+    expect(data.messages[CHAT_ID]?.[0]).toMatchObject({
+      status: 'error',
+      error: 'У получателя нет аккаунта MAX',
+    });
+  });
+});
+
+describe('mergeHistory', () => {
+  const history = parseHistory(historyResponse);
+
+  it('fills a chat opened by phone', () => {
+    const data = mergeHistory(openChat(initialChatsData, CHAT_ID, PEER_PHONE), CHAT_ID, history);
+
+    expect(data.chats[CHAT_ID]).toMatchObject({ name: 'Получатель', unread: 0 });
+    expect(data.chats[CHAT_ID]?.updatedAt).toBeGreaterThanOrEqual(1790151936 * 1000);
+    expect(data.messages[CHAT_ID]?.map((m) => m.text)).toEqual([
+      'Привет! Это было вчера',
+      'тест',
+      'Чек',
+      'Как дела?',
+    ]);
+  });
+
+  it('merges with messages from notifications without duplicates or downgrades', () => {
+    const fromNotifications = replay(sentFromUi());
+    const data = mergeHistory(fromNotifications, CHAT_ID, history);
+
+    expect(data.messages[CHAT_ID]?.map(({ text, status }) => [text, status])).toEqual([
+      ['Привет! Это было вчера', 'read'],
+      ['тест', 'read'],
+      ['Проверка', 'read'],
+      ['Чек', 'delivered'],
+      ['Как дела?', 'read'],
+    ]);
+    expect(mergeHistory(data, CHAT_ID, history)).toEqual(data);
+  });
+
+  it('upgrades statuses of known messages', () => {
+    const data = mergeHistory(sentFromUi(), CHAT_ID, history);
+    expect(data.messages[CHAT_ID]?.find((m) => m.id === '1790151580644')?.status).toBe('read');
+  });
+
+  it('drops the local copy when history outruns the sendMessage response', () => {
+    let data = mergeHistory(withPending(), CHAT_ID, history);
+    data = markMessageSent(data, CHAT_ID, 'local-1', '1790151580644');
+
+    expect(data.messages[CHAT_ID]?.filter((m) => m.text === 'тест')).toEqual([
+      expect.objectContaining({ id: '1790151580644', status: 'read' }),
+    ]);
+  });
+
+  it('ignores history for an unknown chat', () => {
+    expect(mergeHistory(initialChatsData, CHAT_ID, history)).toBe(initialChatsData);
   });
 });

@@ -40,15 +40,23 @@ export type GetChatHistoryRequest = {
   count?: number;
 };
 
+/** Элемент ответа getChatHistory; массив отсортирован от новых к старым. */
 export type HistoryMessage = {
   type: 'incoming' | 'outgoing';
   idMessage: string;
+  /** Секунды. */
   timestamp: number;
   typeMessage: string;
+  /** Внутренний id MAX, даже если запрашивали по номеру. */
   chatId: string;
+  chatType?: string;
   textMessage?: string;
-  statusMessage?: string;
+  extendedTextMessage?: { text?: string };
+  /** Только у исходящих. */
+  statusMessage?: 'sent' | 'delivered' | 'read';
   senderName?: string;
+  senderContactName?: string;
+  isDeleted?: boolean;
 };
 
 export type MessageWebhookType =

@@ -1,0 +1,70 @@
+import type { HistoryMessage } from '../../api/types';
+
+/**
+ * Ответ getChatHistory по формату документации MAX v3 (не снят с живого инстанса),
+ * с теми же id, что и в notifications.json. От новых к старым, как отдаёт API.
+ */
+export const historyResponse: HistoryMessage[] = [
+  {
+    type: 'incoming',
+    idMessage: '117319397304505892',
+    timestamp: 1790151936,
+    typeMessage: 'textMessage',
+    chatId: '10000002',
+    chatType: 'user',
+    textMessage: 'Как дела?',
+    senderName: 'Получатель',
+    senderContactName: 'Получатель',
+  },
+  {
+    type: 'outgoing',
+    idMessage: '117319389244110985',
+    timestamp: 1790151813,
+    typeMessage: 'textMessage',
+    chatId: '10000002',
+    chatType: 'user',
+    textMessage: 'Чек',
+    statusMessage: 'delivered',
+  },
+  {
+    type: 'incoming',
+    idMessage: '11512942354701',
+    timestamp: 1790151637,
+    typeMessage: 'reactionMessage',
+    chatId: '10000002',
+    chatType: 'user',
+    senderName: 'Получатель',
+  },
+  {
+    type: 'outgoing',
+    idMessage: '1790151580644',
+    timestamp: 1790151580,
+    typeMessage: 'extendedTextMessage',
+    chatId: '10000002',
+    chatType: 'user',
+    textMessage: 'тест',
+    extendedTextMessage: { text: 'тест' },
+    statusMessage: 'read',
+  },
+  {
+    type: 'incoming',
+    idMessage: '11500000000001',
+    timestamp: 1790065000,
+    typeMessage: 'textMessage',
+    chatId: '10000002',
+    chatType: 'user',
+    textMessage: 'Удалённое',
+    senderName: 'Получатель',
+    isDeleted: true,
+  },
+  {
+    type: 'incoming',
+    idMessage: '11500000000000',
+    timestamp: 1790064000,
+    typeMessage: 'textMessage',
+    chatId: '10000002',
+    chatType: 'user',
+    textMessage: 'Привет! Это было вчера',
+    senderName: 'Получатель',
+  },
+];

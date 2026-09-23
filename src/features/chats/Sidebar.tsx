@@ -3,7 +3,7 @@ import type { Credentials } from '../../api/types';
 import { CloseIcon, ComposeIcon, LogoutIcon } from '../../components/icons';
 import type { PollingStatus } from '../../hooks/useNotificationPolling';
 import { useChatsStore } from '../../store/chats';
-import { useSessionStore } from '../../store/session';
+import { confirmLogout, logout } from '../auth/logout';
 import { ChatListItem } from './ChatListItem';
 import { NewChatForm } from './NewChatForm';
 
@@ -11,6 +11,7 @@ const POLLING_LABELS: Record<PollingStatus, { text: string; color: string }> = {
   connecting: { text: 'Подключение…', color: 'bg-amber-400' },
   online: { text: 'В сети', color: 'bg-positive' },
   offline: { text: 'Нет связи, переподключаемся…', color: 'bg-danger' },
+  unauthorized: { text: 'Нет доступа к инстансу', color: 'bg-danger' },
 };
 
 const headerButtonClass =
@@ -26,7 +27,6 @@ export function Sidebar({ credentials, pollingStatus }: SidebarProps) {
   const chats = useChatsStore((state) => state.chats);
   const activeChatId = useChatsStore((state) => state.activeChatId);
   const selectChat = useChatsStore((state) => state.selectChat);
-  const logout = useSessionStore((state) => state.logout);
   const [isCreating, setIsCreating] = useState(false);
 
   const sortedChats = useMemo(
@@ -62,7 +62,7 @@ export function Sidebar({ credentials, pollingStatus }: SidebarProps) {
         </button>
         <button
           type="button"
-          onClick={logout}
+          onClick={confirmLogout}
           aria-label="Выйти"
           title={`Выйти из инстанса ${idInstance}`}
           className={`${headerButtonClass} text-text-secondary md:hidden`}
@@ -70,6 +70,17 @@ export function Sidebar({ credentials, pollingStatus }: SidebarProps) {
           <LogoutIcon />
         </button>
       </header>
+
+      {pollingStatus === 'unauthorized' && (
+        <div role="alert" className="mx-4 mb-3 rounded-xl bg-danger/10 px-3 py-2 text-sm">
+          <p>
+            Токен инстанса больше не действует или инстанс заблокирован — сообщения не приходят.
+          </p>
+          <button type="button" onClick={logout} className="mt-1 font-medium text-danger underline">
+            Войти заново
+          </button>
+        </div>
+      )}
 
       {isCreating && (
         <NewChatForm credentials={credentials} onCreated={() => setIsCreating(false)} />

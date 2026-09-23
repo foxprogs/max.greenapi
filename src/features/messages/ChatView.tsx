@@ -1,6 +1,7 @@
 import type { Credentials } from '../../api/types';
 import { Avatar } from '../../components/Avatar';
 import { BackIcon } from '../../components/icons';
+import { useChatHistory } from '../../hooks/useChatHistory';
 import { getChatTitle } from '../../lib/format';
 import { formatPhone } from '../../lib/phone';
 import { useChatsStore } from '../../store/chats';
@@ -16,6 +17,7 @@ type ChatViewProps = {
 export function ChatView({ chatId, credentials }: ChatViewProps) {
   const chat = useChatsStore((state) => state.chats[chatId]);
   const selectChat = useChatsStore((state) => state.selectChat);
+  const history = useChatHistory(credentials, chatId);
 
   if (!chat) return null;
   const title = getChatTitle(chat);
@@ -41,6 +43,7 @@ export function ChatView({ chatId, credentials }: ChatViewProps) {
 
       <MessageList
         chatId={chatId}
+        history={history}
         onRetry={(messageId) => retryMessage(credentials, chatId, messageId)}
       />
       <MessageInput onSend={(text) => sendText(credentials, chatId, text)} />

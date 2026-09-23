@@ -18,13 +18,36 @@
   --color-danger: #ff303c;
   --color-positive: #1abe43;
 
-  --color-bubble-in: #f2f2f2;
-  --color-bubble-out: #0070eb;
+  --color-bubble-in: #ffffff;
+  --color-bubble-out: #e9fdff;
   --color-capsule: #f2f2f2e0;
 }
 
 @utility bg-bubble-out-gradient {
-  background-image: linear-gradient(135deg, #17a8e5 0%, #0b8ce8 50%, #0070eb 100%);
+  background-image: linear-gradient(239deg, #e9fdff 0%, #e9fdff 50%, #e9fdff 100%);
+}
+
+/* Фон переписки: паттерн из иконок поверх градиента. */
+@utility bg-chat {
+  background:
+    url("./assets/chat-pattern.svg") 0 0 / 250px 250px repeat,
+    linear-gradient(28deg, #99d5d7 8.03%, #80bcff 91.51%);
+}
+
+/* Скроллбар на фоне переписки: прозрачная дорожка, тёмный бегунок. */
+@utility scrollbar-chat {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(0 0 0 / 0.25) transparent;
+
+  /* Safari без поддержки scrollbar-color. */
+  &::-webkit-scrollbar {
+    width: 8px;
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    border-radius: 4px;
+    background: rgb(0 0 0 / 0.25);
+  }
 }
 
 html,

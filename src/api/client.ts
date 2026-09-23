@@ -41,12 +41,37 @@ export function buildUrl(
 }
 
 function describeStatus(status: number): string {
-  if (status === 401 || status === 403) return 'Неверный idInstance или apiTokenInstance';
+  if (status === 401) return 'Неверный idInstance или apiTokenInstance';
+  if (status === 403) return 'Доступ запрещён: инстанс заблокирован или ограничен';
   if (status === 429) return 'Слишком много запросов, попробуйте позже';
   if (status === 466) return 'Превышен лимит тарифа GREEN-API';
   if (status === 469) return 'Слишком много проверок номеров, повторите через пару часов';
   if (status >= 500) return 'Сервер GREEN-API временно недоступен';
   return `Ошибка запроса (${status})`;
+}
+
+/**
+ * 466 приходит и при исчерпании квоты метода, и при лимите собеседников на тарифе
+ * «Разработчик» (3 чата в месяц) — второй случай различаем по телу ответа.
+ */
+function isCorrespondentsLimit(body: string): boolean {
+  try {
+    // Любое JSON-значение безопасно: у чисел и строк нужного поля просто не будет.
+    const parsed = JSON.parse(body) as { correspondentsStatus?: { status?: unknown } } | null;
+    return parsed?.correspondentsStatus?.status === 'CORRESPONDENTS_QUOTE_EXCEEDED';
+  } catch {
+    return false;
+  }
+}
+
+async function toApiError(response: Response): Promise<ApiError> {
+  if (response.status === 466 && isCorrespondentsLimit(await response.text().catch(() => ''))) {
+    return new ApiError(
+      'Лимит тарифа «Разработчик»: не больше 3 чатов в месяц. Напишите в один из прежних чатов',
+      response.status,
+    );
+  }
+  return new ApiError(describeStatus(response.status), response.status);
 }
 
 export async function request<T>(
@@ -67,7 +92,7 @@ export async function request<T>(
     throw new ApiError('Нет соединения с сервером GREEN-API', null);
   }
 
-  if (!response.ok) throw new ApiError(describeStatus(response.status), response.status);
+  if (!response.ok) throw await toApiError(response);
 
   // receiveNotification при пустой очереди возвращает `null` или пустое тело.
   const text = await response.text();

@@ -1,5 +1,6 @@
 import type { MessageWebhook, OutgoingMessageStatus, WebhookBody } from '../api/types';
 import type { MessageStatus } from '../types';
+import { asString, isRecord, lookup } from './guards';
 
 export type MessageEvent = {
   type: 'message';
@@ -20,6 +21,8 @@ export type StatusEvent = {
   chatId: string;
   id: string;
   status: MessageStatus;
+  /** Причина, если статус — ошибка. */
+  error?: string;
 };
 
 export type ChatEvent = MessageEvent | StatusEvent;
@@ -38,18 +41,10 @@ const STATUSES: Record<OutgoingMessageStatus, MessageStatus> = {
   noAccount: 'error',
 };
 
-/** Безопасный доступ к таблице по ключу извне: без обращения к прототипу (`constructor` и т.п.). */
-function lookup<T>(table: Record<string, T>, key: unknown): T | undefined {
-  return typeof key === 'string' && Object.hasOwn(table, key) ? table[key] : undefined;
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null;
-}
-
-function asString(value: unknown): string | null {
-  return typeof value === 'string' && value !== '' ? value : null;
-}
+const STATUS_ERRORS: Partial<Record<OutgoingMessageStatus, string>> = {
+  failed: 'Не доставлено',
+  noAccount: 'У получателя нет аккаунта MAX',
+};
 
 /**
  * Текст берём только у текстовых типов: реакции тоже приходят как входящие
@@ -103,7 +98,8 @@ function parseStatus(body: WebhookBody): StatusEvent | null {
   const id = asString(body.idMessage);
   const status = lookup(STATUSES, body.status);
   if (!chatId || !id || !status) return null;
-  return { type: 'status', chatId, id, status };
+  const error = lookup(STATUS_ERRORS, body.status);
+  return { type: 'status', chatId, id, status, ...(error && { error }) };
 }
 
 /** Превращает тело уведомления в событие чата; всё, что не нужно интерфейсу, — null. */

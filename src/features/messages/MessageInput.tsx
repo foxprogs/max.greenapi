@@ -46,9 +46,10 @@ export function MessageInput({ onSend }: MessageInputProps) {
   const remaining = MAX_MESSAGE_LENGTH - text.length;
 
   return (
-    <form onSubmit={handleSubmit} className="border-t border-border bg-surface px-3 py-3 md:px-6">
-      <div className="mx-auto flex max-w-3xl items-end gap-2">
-        <div className="flex min-w-0 flex-1 flex-col rounded-xl border border-black/6 bg-surface transition-colors focus-within:border-accent">
+    // Фон переписки тянется до низа, поле ввода с кнопкой — белая карточка поверх него.
+    <form onSubmit={handleSubmit} className="px-3 pt-1 pb-3 md:px-6">
+      <div className="mx-auto flex max-w-3xl items-end gap-1 rounded-2xl bg-surface p-1.5 shadow-md">
+        <div className="flex min-w-0 flex-1 flex-col">
           <textarea
             ref={textareaRef}
             rows={1}
@@ -58,7 +59,7 @@ export function MessageInput({ onSend }: MessageInputProps) {
             onKeyDown={handleKeyDown}
             placeholder="Сообщение"
             aria-label="Сообщение"
-            className="block w-full resize-none bg-transparent px-3 py-2.5 leading-5 outline-none placeholder:text-text-muted"
+            className="block w-full resize-none bg-transparent px-2.5 py-2.5 leading-5 outline-none placeholder:text-text-muted"
           />
           {remaining <= COUNTER_THRESHOLD && (
             <span
@@ -73,7 +74,7 @@ export function MessageInput({ onSend }: MessageInputProps) {
           disabled={!trimmed}
           aria-label="Отправить"
           title="Отправить (Enter)"
-          className="flex size-11 shrink-0 items-center justify-center rounded-full bg-accent text-white transition-colors hover:bg-accent-hover disabled:bg-surface-muted disabled:text-text-muted"
+          className="flex size-10 shrink-0 items-center justify-center rounded-full bg-accent text-white transition-colors hover:bg-accent-hover disabled:bg-surface-muted disabled:text-text-muted"
         >
           <SendIcon />
         </button>

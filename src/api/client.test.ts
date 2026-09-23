@@ -74,11 +74,45 @@ describe('request', () => {
     });
   });
 
+  it('explains the Developer tariff chat limit from the 466 body', async () => {
+    mockFetch(
+      new Response(
+        JSON.stringify({
+          invokeStatus: { method: 'sendmessage', status: 'QUOTE_ALLOWED' },
+          correspondentsStatus: {
+            method: 'correspondents',
+            used: 3,
+            total: 3,
+            status: 'CORRESPONDENTS_QUOTE_EXCEEDED',
+          },
+        }),
+        { status: 466 },
+      ),
+    );
+    await expect(request(credentials, 'sendMessage')).rejects.toMatchObject({
+      status: 466,
+      message: expect.stringContaining('не больше 3 чатов'),
+    });
+
+    mockFetch(new Response('not json', { status: 466 }));
+    await expect(request(credentials, 'sendMessage')).rejects.toMatchObject({
+      message: 'Превышен лимит тарифа GREEN-API',
+    });
+  });
+
   it('asks to pause after too many number checks (469)', async () => {
     mockFetch(new Response('', { status: 469 }));
     await expect(request(credentials, 'checkAccount')).rejects.toMatchObject({
       status: 469,
       message: expect.stringContaining('повторите через пару часов'),
+    });
+  });
+
+  it('tells a blocked instance from wrong credentials', async () => {
+    mockFetch(new Response('', { status: 403 }));
+    await expect(request(credentials, 'sendMessage')).rejects.toMatchObject({
+      status: 403,
+      message: expect.stringContaining('Доступ запрещён'),
     });
   });
 

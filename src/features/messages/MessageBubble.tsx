@@ -6,10 +6,17 @@ type MessageBubbleProps = {
   message: Message;
   /** Есть сообщение сверху в той же стопке — верхний угол со стороны отправителя меньше. */
   stackedAbove: boolean;
+  /** Есть сообщение снизу в той же стопке — нижний угол со стороны отправителя меньше. */
+  stackedBelow: boolean;
   onRetry: () => void;
 };
 
-export function MessageBubble({ message, stackedAbove, onRetry }: MessageBubbleProps) {
+export function MessageBubble({
+  message,
+  stackedAbove,
+  stackedBelow,
+  onRetry,
+}: MessageBubbleProps) {
   const isOut = message.direction === 'out';
   const meta = (
     <>
@@ -25,8 +32,8 @@ export function MessageBubble({ message, stackedAbove, onRetry }: MessageBubbleP
       <div
         className={`relative rounded-2xl px-3 py-1.5 ${
           isOut
-            ? `bg-bubble-out-gradient rounded-br-md text-white ${stackedAbove ? 'rounded-tr-md' : ''}`
-            : `bg-bubble-in rounded-bl-md ${stackedAbove ? 'rounded-tl-md' : ''}`
+            ? `bg-bubble-out-gradient ${stackedAbove ? 'rounded-tr-md' : ''} ${stackedBelow ? 'rounded-br-md' : ''}`
+            : `bg-bubble-in ${stackedAbove ? 'rounded-tl-md' : ''} ${stackedBelow ? 'rounded-bl-md' : ''}`
         } ${message.status === 'error' ? 'opacity-70' : ''}`}
       >
         <p className="wrap-break-word whitespace-pre-wrap">
@@ -36,11 +43,7 @@ export function MessageBubble({ message, stackedAbove, onRetry }: MessageBubbleP
             {meta}
           </span>
         </p>
-        <span
-          className={`absolute right-3 bottom-1 flex items-center gap-0.5 text-xs ${
-            isOut ? 'text-white/65' : 'text-text-muted'
-          }`}
-        >
+        <span className="absolute right-3 bottom-1 flex items-center gap-0.5 text-xs text-text-muted">
           {meta}
         </span>
       </div>

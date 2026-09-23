@@ -1,27 +1,32 @@
 import { useEffect, useState } from 'react';
+import { ApiError } from '../api/client';
 import { deleteNotification, receiveNotification } from '../api/greenApi';
 import type { Credentials, WebhookBody } from '../api/types';
+import { delay } from '../lib/delay';
 import { parseNotification } from '../lib/notifications';
 import { useChatsStore } from '../store/chats';
 
-export type PollingStatus = 'connecting' | 'online' | 'offline';
+export type PollingStatus = 'connecting' | 'online' | 'offline' | 'unauthorized';
 
 const RECEIVE_TIMEOUT_SECONDS = 20;
 const INITIAL_BACKOFF_MS = 1000;
 const MAX_BACKOFF_MS = 30_000;
 
-function delay(ms: number, signal: AbortSignal) {
-  return new Promise<void>((resolve) => {
-    const timer = setTimeout(resolve, ms);
-    signal.addEventListener(
-      'abort',
-      () => {
-        clearTimeout(timer);
-        resolve();
-      },
-      { once: true },
-    );
+/** Пауза перед повтором; если сеть вернулась раньше — повторяем сразу. */
+function waitBeforeRetry(ms: number, signal: AbortSignal) {
+  const wake = new AbortController();
+  const onWake = () => wake.abort();
+  window.addEventListener('online', onWake, { once: true });
+  signal.addEventListener('abort', onWake, { once: true });
+  return delay(ms, wake.signal).finally(() => {
+    window.removeEventListener('online', onWake);
+    signal.removeEventListener('abort', onWake);
   });
+}
+
+/** Креды отозваны или инстанс заблокирован: повторять бессмысленно. */
+function isFatal(error: unknown) {
+  return error instanceof ApiError && (error.status === 401 || error.status === 403);
 }
 
 function handleNotification(body: WebhookBody) {
@@ -52,9 +57,13 @@ async function pollNotifications(
       await deleteNotification(credentials, notification.receiptId, signal);
     } catch (error) {
       if (signal.aborted) return;
+      if (isFatal(error)) {
+        onStatus('unauthorized');
+        return;
+      }
       console.warn('Notification polling failed, retrying in', backoff, 'ms', error);
       onStatus('offline');
-      await delay(backoff, signal);
+      await waitBeforeRetry(backoff, signal);
       backoff = Math.min(backoff * 2, MAX_BACKOFF_MS);
     }
   }

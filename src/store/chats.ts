@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import type { ChatHistory } from '../lib/history';
 import type { ChatEvent, MessageEvent, StatusEvent } from '../lib/notifications';
 import type { Chat, Message, MessageStatus } from '../types';
 
@@ -47,6 +48,8 @@ function updateMessage(
   messageId: string,
   patch: Partial<Message>,
 ): ChatsData {
+  // Сообщения уже может не быть (например, после выхода) — не создаём пустых записей.
+  if (!data.messages[chatId]?.some((message) => message.id === messageId)) return data;
   return updateMessages(data, chatId, (messages) =>
     messages.map((message) => (message.id === messageId ? { ...message, ...patch } : message)),
   );
@@ -89,11 +92,42 @@ function applyStatus(data: ChatsData, event: StatusEvent): ChatsData {
   // Статус сообщения, которого нет в сторе (например, отправленного до входа), не нужен.
   const message = data.messages[event.chatId]?.find((m) => m.id === event.id);
   if (!message || !canUpdateStatus(message.status, event.status)) return data;
-  return updateMessage(data, event.chatId, event.id, { status: event.status, error: undefined });
+  return updateMessage(data, event.chatId, event.id, { status: event.status, error: event.error });
 }
 
 export function applyEvent(data: ChatsData, event: ChatEvent): ChatsData {
   return event.type === 'message' ? applyMessage(data, event) : applyStatus(data, event);
+}
+
+/** Сливает историю с тем, что уже есть в сторе: известные сообщения только повышают статус. */
+export function mergeHistory(data: ChatsData, chatId: string, history: ChatHistory): ChatsData {
+  const chat = data.chats[chatId];
+  if (!chat) return data;
+
+  const merged = [...(data.messages[chatId] ?? [])];
+  for (const incoming of history.messages) {
+    const index = merged.findIndex((m) => m.id === incoming.id);
+    const current = merged[index];
+    if (!current) {
+      merged.push(incoming);
+    } else if (canUpdateStatus(current.status, incoming.status)) {
+      merged[index] = { ...current, status: incoming.status, error: undefined };
+    }
+  }
+  merged.sort((a, b) => a.timestamp - b.timestamp);
+
+  return {
+    ...data,
+    chats: {
+      ...data.chats,
+      [chatId]: {
+        ...chat,
+        name: chat.name ?? history.name,
+        updatedAt: Math.max(chat.updatedAt, merged.at(-1)?.timestamp ?? 0),
+      },
+    },
+    messages: { ...data.messages, [chatId]: merged },
+  };
 }
 
 /** Открывает чат с пользователем, чей chatId получен из checkAccount по номеру. */
@@ -162,6 +196,7 @@ export function markMessagePending(data: ChatsData, chatId: string, messageId: s
 
 type ChatsActions = {
   applyEvent: (event: ChatEvent) => void;
+  mergeHistory: (chatId: string, history: ChatHistory) => void;
   openChat: (chatId: string, phone: string) => void;
   selectChat: (chatId: string | null) => void;
   addPendingMessage: (chatId: string, message: Pick<Message, 'id' | 'text' | 'timestamp'>) => void;
@@ -178,6 +213,7 @@ export const useChatsStore = create<ChatsState>()(
     (set) => ({
       ...initialChatsData,
       applyEvent: (event) => set((state) => applyEvent(state, event)),
+      mergeHistory: (chatId, history) => set((state) => mergeHistory(state, chatId, history)),
       openChat: (chatId, phone) => set((state) => openChat(state, chatId, phone)),
       selectChat: (chatId) => set((state) => selectChat(state, chatId)),
       addPendingMessage: (chatId, message) =>

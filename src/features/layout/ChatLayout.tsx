@@ -1,8 +1,9 @@
+import { useEffect } from 'react';
 import type { Credentials } from '../../api/types';
 import { ChatsIcon, LogoutIcon, MaxLogo } from '../../components/icons';
 import { useNotificationPolling } from '../../hooks/useNotificationPolling';
 import { useChatsStore } from '../../store/chats';
-import { useSessionStore } from '../../store/session';
+import { confirmLogout } from '../auth/logout';
 import { Sidebar } from '../chats/Sidebar';
 import { ChatView } from '../messages/ChatView';
 
@@ -13,7 +14,7 @@ type ChatLayoutProps = {
 export function ChatLayout({ credentials }: ChatLayoutProps) {
   const pollingStatus = useNotificationPolling(credentials);
   const activeChatId = useChatsStore((state) => state.activeChatId);
-  const logout = useSessionStore((state) => state.logout);
+  useUnreadTitle();
 
   return (
     <div className="flex h-dvh overflow-hidden">
@@ -31,7 +32,7 @@ export function ChatLayout({ credentials }: ChatLayoutProps) {
         </span>
         <button
           type="button"
-          onClick={logout}
+          onClick={confirmLogout}
           title={`Выйти из инстанса ${credentials.idInstance}`}
           aria-label="Выйти"
           className="mt-auto flex size-11 items-center justify-center rounded-xl text-text-secondary transition-colors hover:bg-surface-hover hover:text-danger"
@@ -50,7 +51,7 @@ export function ChatLayout({ credentials }: ChatLayoutProps) {
       </aside>
 
       <main
-        className={`min-w-0 flex-1 flex-col bg-surface md:flex ${activeChatId ? 'flex' : 'hidden'}`}
+        className={`min-w-0 flex-1 flex-col bg-chat md:flex ${activeChatId ? 'flex' : 'hidden'}`}
       >
         {activeChatId ? (
           <ChatView key={activeChatId} chatId={activeChatId} credentials={credentials} />
@@ -64,4 +65,18 @@ export function ChatLayout({ credentials }: ChatLayoutProps) {
       </main>
     </div>
   );
+}
+
+/** Непрочитанные — в заголовке вкладки, чтобы их было видно из других вкладок. */
+function useUnreadTitle() {
+  const unread = useChatsStore((state) =>
+    Object.values(state.chats).reduce((sum, chat) => sum + chat.unread, 0),
+  );
+  useEffect(() => {
+    const baseTitle = document.title;
+    document.title = unread > 0 ? `(${unread}) ${baseTitle}` : baseTitle;
+    return () => {
+      document.title = baseTitle;
+    };
+  }, [unread]);
 }
