@@ -1,0 +1,23 @@
+@import "tailwindcss";
+
+@theme {
+  --color-accent: #3d6cff;
+  --color-accent-hover: #2f5ae6;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f3f4f7;
+  --color-border: #e4e6eb;
+  --color-text: #1b1d21;
+  --color-text-muted: #7a7f8a;
+  --color-danger: #e5484d;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  @apply bg-surface-muted text-text antialiased;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}

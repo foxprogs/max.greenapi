@@ -1,0 +1,238 @@
+[
+  {
+    "receiptId": 1,
+    "body": {
+      "typeWebhook": "outgoingAPIMessageReceived",
+      "instanceData": {
+        "idInstance": 1100000000,
+        "wid": "79000000001@c.us",
+        "typeInstance": "v3"
+      },
+      "timestamp": 1790151580,
+      "idMessage": "1790151580644",
+      "senderData": {
+        "chatId": "10000002",
+        "chatName": "Получатель",
+        "chatType": "user",
+        "sender": "10000001",
+        "senderName": "Имя",
+        "senderType": "user",
+        "senderContactName": "",
+        "senderPhoneNumber": 79000000001
+      },
+      "messageData": {
+        "typeMessage": "extendedTextMessage",
+        "extendedTextMessageData": {
+          "text": "тест",
+          "description": "",
+          "title": "",
+          "previewType": "None",
+          "jpegThumbnail": "",
+          "forwardingScore": 0,
+          "isForwarded": false
+        }
+      }
+    }
+  },
+  {
+    "receiptId": 2,
+    "body": {
+      "typeWebhook": "outgoingMessageStatus",
+      "chatId": "10000002",
+      "instanceData": {
+        "idInstance": 1100000000,
+        "wid": "79000000001@c.us",
+        "typeInstance": "v3"
+      },
+      "timestamp": 1790151580,
+      "idMessage": "1790151580644",
+      "status": "delivered"
+    }
+  },
+  {
+    "receiptId": 3,
+    "body": {
+      "typeWebhook": "outgoingMessageReceived",
+      "instanceData": {
+        "idInstance": 1100000000,
+        "wid": "79000000001@c.us",
+        "typeInstance": "v3"
+      },
+      "timestamp": 1790151617,
+      "idMessage": "117319376392047155",
+      "senderData": {
+        "chatId": "10000002",
+        "chatName": "Получатель",
+        "chatType": "user",
+        "sender": "10000001",
+        "senderName": "Имя",
+        "senderType": "user",
+        "senderContactName": "",
+        "senderPhoneNumber": 79000000001
+      },
+      "messageData": {
+        "typeMessage": "textMessage",
+        "textMessageData": {
+          "textMessage": "Проверка",
+          "forwardingScore": 0,
+          "isForwarded": false
+        }
+      }
+    }
+  },
+  {
+    "receiptId": 4,
+    "body": {
+      "typeWebhook": "outgoingMessageStatus",
+      "chatId": "10000002",
+      "instanceData": {
+        "idInstance": 1100000000,
+        "wid": "79000000001@c.us",
+        "typeInstance": "v3"
+      },
+      "timestamp": 1790151620,
+      "idMessage": "117319376392047155",
+      "status": "delivered"
+    }
+  },
+  {
+    "receiptId": 5,
+    "body": {
+      "typeWebhook": "incomingMessageReceived",
+      "instanceData": {
+        "idInstance": 1100000000,
+        "wid": "79000000001@c.us",
+        "typeInstance": "v3"
+      },
+      "timestamp": 1790151637,
+      "idMessage": "11512942354701",
+      "senderData": {
+        "chatId": "10000002",
+        "chatName": "Получатель",
+        "chatType": "user",
+        "sender": "10000002",
+        "senderName": "Получатель",
+        "senderType": "user",
+        "senderContactName": "",
+        "senderPhoneNumber": 79000000002
+      },
+      "messageData": {
+        "typeMessage": "reactionMessage",
+        "extendedTextMessageData": {
+          "text": "👌"
+        },
+        "quotedMessage": {
+          "stanzaId": "117319376392047155",
+          "participant": "10000001"
+        }
+      }
+    }
+  },
+  {
+    "receiptId": 6,
+    "body": {
+      "typeWebhook": "outgoingMessageStatus",
+      "chatId": "10000002",
+      "instanceData": {
+        "idInstance": 1100000000,
+        "wid": "79000000001@c.us",
+        "typeInstance": "v3"
+      },
+      "timestamp": 1790151644,
+      "idMessage": "117319376392047155",
+      "status": "read"
+    }
+  },
+  {
+    "receiptId": 7,
+    "body": {
+      "typeWebhook": "outgoingMessageStatus",
+      "chatId": "10000002",
+      "instanceData": {
+        "idInstance": 1100000000,
+        "wid": "79000000001@c.us",
+        "typeInstance": "v3"
+      },
+      "timestamp": 1790151644,
+      "idMessage": "1790151580644",
+      "status": "read"
+    }
+  },
+  {
+    "receiptId": 8,
+    "body": {
+      "typeWebhook": "outgoingMessageReceived",
+      "instanceData": {
+        "idInstance": 1100000000,
+        "wid": "79000000001@c.us",
+        "typeInstance": "v3"
+      },
+      "timestamp": 1790151813,
+      "idMessage": "117319389244110985",
+      "senderData": {
+        "chatId": "10000002",
+        "chatName": "Получатель",
+        "chatType": "user",
+        "sender": "10000001",
+        "senderName": "Имя",
+        "senderType": "user",
+        "senderContactName": "",
+        "senderPhoneNumber": 79000000001
+      },
+      "messageData": {
+        "typeMessage": "textMessage",
+        "textMessageData": {
+          "textMessage": "Чек",
+          "forwardingScore": 0,
+          "isForwarded": false
+        }
+      }
+    }
+  },
+  {
+    "receiptId": 9,
+    "body": {
+      "typeWebhook": "outgoingMessageStatus",
+      "chatId": "10000002",
+      "instanceData": {
+        "idInstance": 1100000000,
+        "wid": "79000000001@c.us",
+        "typeInstance": "v3"
+      },
+      "timestamp": 1790151816,
+      "idMessage": "117319389244110985",
+      "status": "delivered"
+    }
+  },
+  {
+    "receiptId": 10,
+    "body": {
+      "typeWebhook": "incomingMessageReceived",
+      "instanceData": {
+        "idInstance": 1100000000,
+        "wid": "79000000001@c.us",
+        "typeInstance": "v3"
+      },
+      "timestamp": 1790151936,
+      "idMessage": "117319397304505892",
+      "senderData": {
+        "chatId": "10000002",
+        "chatName": "Получатель",
+        "chatType": "user",
+        "sender": "10000002",
+        "senderName": "Получатель",
+        "senderType": "user",
+        "senderContactName": "",
+        "senderPhoneNumber": 79000000002
+      },
+      "messageData": {
+        "typeMessage": "textMessage",
+        "textMessageData": {
+          "textMessage": "Как дела?",
+          "forwardingScore": 0,
+          "isForwarded": false
+        }
+      }
+    }
+  }
+]
