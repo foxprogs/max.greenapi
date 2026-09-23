@@ -1,5 +1,6 @@
 import { request } from './client';
 import type {
+  CheckAccountResponse,
   Credentials,
   DeleteNotificationResponse,
   GetChatHistoryRequest,
@@ -18,6 +19,14 @@ export function sendMessage(credentials: Credentials, payload: SendMessageReques
   return request<SendMessageResponse>(credentials, 'sendMessage', {
     httpMethod: 'POST',
     body: payload,
+  });
+}
+
+/** chatId пользователя MAX по номеру; номер — только +7 или +375. */
+export function checkAccount(credentials: Credentials, phone: string) {
+  return request<CheckAccountResponse>(credentials, 'checkAccount', {
+    httpMethod: 'POST',
+    body: { phoneNumber: Number(phone) },
   });
 }
 

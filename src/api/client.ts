@@ -44,6 +44,7 @@ function describeStatus(status: number): string {
   if (status === 401 || status === 403) return 'Неверный idInstance или apiTokenInstance';
   if (status === 429) return 'Слишком много запросов, попробуйте позже';
   if (status === 466) return 'Превышен лимит тарифа GREEN-API';
+  if (status === 469) return 'Слишком много проверок номеров, повторите через пару часов';
   if (status >= 500) return 'Сервер GREEN-API временно недоступен';
   return `Ошибка запроса (${status})`;
 }

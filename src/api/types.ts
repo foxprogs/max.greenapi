@@ -25,6 +25,12 @@ export type SendMessageResponse = {
   idMessage: string;
 };
 
+export type CheckAccountResponse = {
+  exist: boolean;
+  /** Внутренний id MAX пользователя с этим номером; пустой, если аккаунта нет. */
+  chatId: string;
+};
+
 export type DeleteNotificationResponse = {
   result: boolean;
 };
@@ -59,6 +65,9 @@ export type MessageWebhook = {
     sender: string;
     senderName?: string;
     chatName?: string;
+    chatType?: string;
+    /** Во входящих — номер собеседника, в исходящих — наш номер. Приходит числом. */
+    senderPhoneNumber?: number;
   };
   messageData: {
     typeMessage: string;

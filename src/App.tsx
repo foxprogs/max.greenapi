@@ -3,6 +3,6 @@ import { ChatLayout } from './features/layout/ChatLayout';
 import { useSessionStore } from './store/session';
 
 export function App() {
-  const isLoggedIn = useSessionStore((state) => state.credentials !== null);
-  return isLoggedIn ? <ChatLayout /> : <LoginPage />;
+  const credentials = useSessionStore((state) => state.credentials);
+  return credentials ? <ChatLayout credentials={credentials} /> : <LoginPage />;
 }

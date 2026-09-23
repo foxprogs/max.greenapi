@@ -74,6 +74,14 @@ describe('request', () => {
     });
   });
 
+  it('asks to pause after too many number checks (469)', async () => {
+    mockFetch(new Response('', { status: 469 }));
+    await expect(request(credentials, 'checkAccount')).rejects.toMatchObject({
+      status: 469,
+      message: expect.stringContaining('повторите через пару часов'),
+    });
+  });
+
   it('maps network failures to ApiError without status', async () => {
     mockFetch(new TypeError('Failed to fetch'));
     await expect(request(credentials, 'getStateInstance')).rejects.toMatchObject({

@@ -1,4 +1,4 @@
-import { type FormEvent, useId, useState } from 'react';
+import { type SubmitEvent, useId, useState } from 'react';
 import { ApiError } from '../../api/client';
 import { getStateInstance } from '../../api/greenApi';
 import type { Credentials, InstanceState } from '../../api/types';
@@ -32,7 +32,7 @@ export function LoginPage() {
   const update = (field: keyof Credentials) => (value: string) =>
     setForm((prev) => ({ ...prev, [field]: value }));
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: SubmitEvent<HTMLFormElement>) => {
     event.preventDefault();
     const credentials: Credentials = {
       apiUrl: form.apiUrl.trim().replace(/\/+$/, ''),
